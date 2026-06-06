@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frank's Barbershop – Horários</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Josefin+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #080808;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(201,168,76,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(201,168,76,0.03) 0%, transparent 60%);
+      font-family: 'Josefin Sans', sans-serif;
+      color: #e8e0d0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 36px 20px 48px;
+    }
+
+    /* ── HEADER ── */
+    .header { text-align: center; margin-bottom: 10px; }
+    .header-label {
+      font-size: 10px;
+      letter-spacing: 7px;
+      color: #5a4a2e;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .header-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 42px;
+      color: #c9a84c;
+      letter-spacing: 3px;
+      text-shadow: 0 0 40px rgba(201,168,76,0.2);
+      line-height: 1;
+    }
+    .header-sub {
+      font-size: 13px;
+      letter-spacing: 10px;
+      color: #6b5a38;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .divider {
+      width: 60px; height: 1px;
+      background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+      margin: 14px auto;
+    }
+
+    /* ── RELÓGIO ── */
+    .relogio { text-align: center; margin-bottom: 24px; }
+    .relogio-hora {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 38px;
+      font-weight: 300;
+      color: #e8e0d0;
+      letter-spacing: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .relogio-data {
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: #4a3a22;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-dot.carregando { background: #c9a84c; animation: pulse 1s infinite; }
+    .status-dot.ok         { background: #6ab86a; }
+    .status-dot.erro       { background: #b86060; }
+
+    .btn-refresh {
+      background: none;
+      border: 1px solid #2a2010;
+      color: #c9a84c;
+      padding: 3px 12px;
+      font-size: 10px;
+      font-family: 'Josefin Sans', sans-serif;
+      letter-spacing: 3px;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-refresh:hover { border-color: #c9a84c; background: rgba(201,168,76,0.06); }
+
+    /* ── ERRO ── */
+    .erro-box {
+      background: #0f0606;
+      border: 1px solid #4a1818;
+      border-radius: 10px;
+      padding: 20px 24px;
+      max-width: 440px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .erro-titulo { color: #c06060; font-size: 11px; letter-spacing: 3px; margin-bottom: 12px; }
+    .erro-item   { font-size: 10px; color: #6a3030; font-family: monospace; margin-bottom: 4px; }
+    .erro-desc   { font-size: 10px; color: #3a1818; margin-top: 12px; line-height: 1.7; }
+
+    /* ── GRID DE BARBEIROS ── */
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      width: 100%;
+      max-width: 720px;
+    }
+    .card {
+      background: #0c0b07;
+      border: 1px solid #1e1c10;
+      border-radius: 12px;
+      padding: 20px;
+      flex: 1 1 190px;
+      min-width: 180px;
+      max-width: 270px;
+      transition: border-color 0.3s;
+    }
+    .card:hover { border-color: #3a3018; }
+    .card-nome {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: #c9a84c;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #1e1c10;
+    }
+    .horario {
+      background: #07100a;
+      border: 1px solid #162516;
+      border-radius: 4px;
+      padding: 7px 12px;
+      margin-bottom: 6px;
+      font-size: 15px;
+      color: #68c068;
+      letter-spacing: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+    .sem-horario { font-size: 11px; color: #2e2410; font-style: italic; }
+
+    /* ── DIAGNÓSTICO ── */
+    .debug-box {
+      background: #0a0a06;
+      border: 1px solid #2e2a10;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 500px;
+      width: 100%;
+      margin-top: 8px;
+    }
+    .debug-titulo { color: #c9a84c; font-size: 10px; letter-spacing: 3px; margin-bottom: 12px; }
+    .debug-text   { font-size: 9px; color: #3e3a18; font-family: monospace; white-space: pre-wrap; line-height: 1.6; }
+
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.7)} }
+    @keyframes fadein { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .fadein { animation: fadein 0.4s ease both; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-label">Horários Disponíveis</div>
+    <div class="header-title">FRANK'S</div>
+    <div class="header-sub">Barbershop</div>
+    <div class="divider"></div>
+  </div>
+
+  <!-- RELÓGIO -->
+  <div class="relogio">
+    <div class="relogio-hora" id="hora">--:--:--</div>
+    <div class="relogio-data" id="data">...</div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar">
+    <div class="status-dot carregando" id="dot"></div>
+    <span id="status-txt" style="color:#8a7a5a">Conectando...</span>
+    <button class="btn-refresh" onclick="buscar()">↺ AGORA</button>
+  </div>
+
+  <!-- CONTEÚDO -->
+  <div id="erro-box" class="erro-box" style="display:none">
+    <div class="erro-titulo">⚠ PROXIES INDISPONÍVEIS</div>
+    <div id="erro-lista"></div>
+    <div class="erro-desc" id="erro-cd"></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="debug-box" id="debug-box" style="display:none">
+    <div class="debug-titulo">⚠ PROXY OK · ESTRUTURA NÃO RECONHECIDA</div>
+    <div class="debug-text" id="debug-text"></div>
+  </div>
+
+  <script>
+    var ALVO = 'https://minhaagenda.digital/franksbarbershop/index.php';
+    var PROXIES = [
+      { nome: 'corsproxy.io',
+        montar: function(u){ return 'https://corsproxy.io/?' + encodeURIComponent(u); },
+        extrair: function(r){ return r.text(); } },
+      { nome: 'allorigins.win',
+        montar: function(u){ return 'https://api.allorigins.win/get?charset=UTF-8&url=' + encodeURIComponent(u); },
+        extrair: function(r){ return r.json().then(function(j){ return j.contents; }); } },
+      { nome: 'thingproxy.freeboard.io',
+        montar: function(u){ return 'https://thingproxy.freeboard.io/fetch/' + u; },
+        extrair: function(r){ return r.text(); } }
+    ];
+
+    var cdAtual = 60;
+    var cdTimer = null;
+
+    // ── Relógio ──
+    var DIAS  = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+    var MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+    function atualizarRelogio(){
+      var d = new Date();
+      document.getElementById('hora').textContent = d.toLocaleTimeString('pt-BR');
+      document.getElementById('data').textContent =
+        DIAS[d.getDay()] + ', ' + d.getDate() + ' de ' + MESES[d.getMonth()];
+    }
+    setInterval(atualizarRelogio, 1000);
+    atualizarRelogio();
+
+    // ── Countdown ──
+    function iniciarCountdown(){
+      clearInterval(cdTimer);
+      cdAtual = 60;
+      cdTimer = setInterval(function(){
+        cdAtual--;
+        var st = document.getElementById('status-txt');
+        if(cdAtual <= 0){ clearInterval(cdTimer); buscar(); return; }
+        var txt = st.textContent.replace(/\d+s/, cdAtual + 's');
+        st.textContent = txt;
+      }, 1000);
+    }
+
+    // ── Fetch com timeout manual ──
+    function fetchTimeout(url, ms){
+      return new Promise(function(res, rej){
+        var t = setTimeout(function(){ rej(new Error('Timeout')); }, ms);
+        fetch(url)
+          .then(function(r){ clearTimeout(t); res(r); })
+          .catch(function(e){ clearTimeout(t); rej(e); });
+      });
+    }
+
+    // ── Parse do HTML ──
+    function parseHtml(html){
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var selB = ['.employee','.barber','.profissional','.professional',
+        "[class*='barber']","[class*='profissional']",
+        '.col-md-3','.col-sm-6','.card','.staff-card','.team-member'];
+      var selH = ['.time-slot','.horario','.slot','.available',
+        "[class*='slot']","[class*='time']","[class*='horario']",'button','.btn'];
+
+      for(var s = 0; s < selB.length; s++){
+        var els = doc.querySelectorAll(selB[s]);
+        if(els.length > 0 && els.length < 20){
+          var lista = [];
+          for(var i = 0; i < els.length; i++){
+            var el = els[i];
+            var nEl = el.querySelector('h2,h3,h4,.name,.nome,strong');
+            var nome = nEl ? nEl.textContent.trim() : 'Barbeiro ' + (i+1);
+            var hrs = [];
+            for(var h = 0; h < selH.length; h++){
+              var hs = el.querySelectorAll(selH[h]);
+              for(var k = 0; k < hs.length; k++){
+                var txt = hs[k].textContent.trim();
+                if(txt && txt.length < 20 && /\d/.test(txt)) hrs.push(txt);
+              }
+              if(hrs.length) break;
+            }
+            lista.push({ nome: nome, hrs: hrs });
+          }
+          return { lista: lista, bruto: null };
+        }
+      }
+      var bruto = (doc.body ? doc.body.innerText : html).slice(0, 2500);
+      return { lista: null, bruto: bruto };
+    }
+
+    // ── Renderizar ──
+    function renderizar(res, proxyNome){
+      var grid = document.getElementById('grid');
+      var debugBox = document.getElementById('debug-box');
+      grid.innerHTML = '';
+      debugBox.style.display = 'none';
+
+      if(res.lista){
+        res.lista.forEach(function(b){
+          var card = document.createElement('div');
+          card.className = 'card fadein';
+          var hrsHtml = b.hrs.length
+            ? b.hrs.map(function(h){ return '<div class="horario">' + h + '</div>'; }).join('')
+            : '<div class="sem-horario">Sem horários disponíveis</div>';
+          card.innerHTML = '<div class="card-nome">' + b.nome + '</div>' + hrsHtml;
+          grid.appendChild(card);
+        });
+      } else {
+        debugBox.style.display = 'block';
+        document.getElementById('debug-text').textContent = res.bruto;
+        grid.innerHTML =
+          '<div class="card fadein" style="max-width:100%;width:100%">' +
+          '<div class="card-nome">⚠ Estrutura não reconhecida</div>' +
+          '<p style="font-size:11px;color:#6a5a3a;line-height:1.7">' +
+          'Proxy <strong style="color:#c9a84c">' + proxyNome + '</strong> funcionou!<br>' +
+          'Mas a estrutura da página não foi identificada automaticamente.<br>' +
+          'Veja o diagnóstico abaixo para ajuste fino.</p></div>';
+      }
+    }
+
+    // ── Status helpers ──
+    function setStatus(classe, txt){
+      var dot = document.getElementById('dot');
+      var st  = document.getElementById('status-txt');
+      dot.className = 'status-dot ' + classe;
+      st.textContent = txt;
+      st.style.color = classe==='ok' ? '#6ab86a' : classe==='erro' ? '#b86060' : '#8a7a5a';
+    }
+
+    // ── Tentativa sequencial de proxies ──
+    function tentarProxy(lista, erros, callback){
+      if(lista.length === 0){ callback(erros); return; }
+      var p = lista[0];
+      var resto = lista.slice(1);
+      setStatus('carregando', 'via ' + p.nome + '...');
+      fetchTimeout(p.montar(ALVO), 12000)
+        .then(function(r){
+          if(!r.ok) throw new Error('HTTP ' + r.status);
+          return p.extrair(r);
+        })
+        .then(function(html){
+          if(!html || html.length < 100) throw new Error('Resposta vazia');
+          var res = parseHtml(html);
+          renderizar(res, p.nome);
+          document.getElementById('erro-box').style.display = 'none';
+          setStatus('ok', p.nome + ' · atualiza em 60s');
+          iniciarCountdown();
+          callback(null);
+        })
+        .catch(function(e){
+          erros.push(p.nome + ': ' + e.message);
+          tentarProxy(resto, erros, callback);
+        });
+    }
+
+    // ── Busca principal ──
+    function buscar(){
+      clearInterval(cdTimer);
+      setStatus('carregando', 'Conectando...');
+      document.getElementById('grid').innerHTML = '';
+      document.getElementById('debug-box').style.display = 'none';
+      document.getElementById('erro-box').style.display = 'none';
+
+      tentarProxy(PROXIES.slice(), [], function(erros){
+        if(!erros) return; // sucesso
+        // Todos falharam
+        var box   = document.getElementById('erro-box');
+        var lista = document.getElementById('erro-lista');
+        var cdEl  = document.getElementById('erro-cd');
+        box.style.display = 'block';
+        lista.innerHTML = erros.map(function(e){ return '<div class="erro-item">• ' + e + '</div>'; }).join('');
+        cdEl.textContent = 'Próxima tentativa automática em 60s.';
+        setStatus('erro', 'falha · tenta em 60s');
+        iniciarCountdown();
+      });
+    }
+
+    // Inicia
+    buscar();
+  </script>
+</body>
+</html>
